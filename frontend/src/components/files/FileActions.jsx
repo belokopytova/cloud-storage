@@ -37,7 +37,6 @@ const FileActions = ({ file, onActionComplete }) => {
 
   const handleCopyShareLink = async () => {
     try {
-      // Здесь должен быть запрос к API для создания ссылки
       const shareLink = `${window.location.origin}/share/${file.id}`;
       await navigator.clipboard.writeText(shareLink);
       alert('Ссылка скопирована в буфер обмена!');
