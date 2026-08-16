@@ -1,15 +1,15 @@
-
 import os
 import uuid
 from pathlib import Path
 
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
 
 from apps.users.permissions import IsOwnerOrAdmin, IsOwnerStorageOrAdmin
 from .models import File
@@ -27,6 +27,33 @@ class FileListView(generics.ListAPIView):
         return File.objects.filter(user=self.request.user, is_deleted=False).order_by('-upload_date')
 
 
+@extend_schema(
+    summary="Загрузка файла",
+    description="Загружает файл в хранилище пользователя",
+    request={
+        'multipart/form-data': {
+            'type': 'object',
+            'properties': {
+                'file': {
+                    'type': 'string',
+                    'format': 'binary',
+                    'description': 'Файл для загрузки'
+                },
+                'comment': {
+                    'type': 'string',
+                    'description': 'Комментарий к файлу (опционально)',
+                    'example': 'Мой документ'
+                }
+            },
+            'required': ['file']
+        }
+    },
+    responses={
+        201: FileSerializer,
+        400: OpenApiResponse(description='Ошибка валидации'),
+        401: OpenApiResponse(description='Не авторизован')
+    }
+)
 class FileUploadView(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
     permission_classes = [IsAuthenticated]
@@ -39,26 +66,31 @@ class FileUploadView(generics.CreateAPIView):
         comment = serializer.validated_data.get('comment', '')
 
         storage_root = Path(settings.FILE_STORAGE_ROOT)
-        user_folder = storage_root / request.user.storage_path.strip('/').replace('\\', '/')
+        user_folder = storage_root / request.user.storage_path
         user_folder.mkdir(parents=True, exist_ok=True)
 
+       
         ext = Path(uploaded_file.name).suffix
         stored_name = f'{uuid.uuid4().hex}{ext}'
-        relative_dir = Path(request.user.storage_path.strip('/')).as_posix()
-        full_path = user_folder / stored_name
+        
+        relative_path = f"{request.user.storage_path}/{stored_name}"
+        full_path = storage_root / relative_path
 
-        with default_storage.open(str(full_path.relative_to(storage_root)), 'wb+') as destination:
+    
+        with open(full_path, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
+      
         file_record = File.objects.create(
             user=request.user,
             original_name=uploaded_file.name,
             stored_name=stored_name,
-            file_path=str(Path(relative_dir) / stored_name),
+            file_path=relative_path.replace('\\', '/'), 
             comment=comment,
             size=uploaded_file.size,
         )
+        
         return Response(FileSerializer(file_record).data, status=status.HTTP_201_CREATED)
 
 
@@ -76,12 +108,35 @@ class FileDetailView(generics.RetrieveDestroyAPIView):
         if file_path.exists():
             file_path.unlink(missing_ok=True)
 
+        # Мягкое удаление
         instance.is_deleted = True
         instance.deleted_at = __import__('django.utils.timezone').utils.timezone.now()
         instance.save(update_fields=['is_deleted', 'deleted_at'])
         return Response({'message': 'Файл удалён'}, status=status.HTTP_200_OK)
 
-
+@extend_schema(
+    summary="Переименовать файл",
+    description="Изменяет оригинальное имя файла",
+    parameters=[
+        OpenApiParameter(
+            name='id',
+            location='path',
+            description='ID файла',
+            required=True,
+            type=int
+        )
+    ],
+    request=FileRenameSerializer,  
+    responses={
+        200: OpenApiResponse(
+            response=FileSerializer,
+            description='Имя файла обновлено'
+        ),
+        400: OpenApiResponse(description='Ошибка валидации'),
+        403: OpenApiResponse(description='Доступ запрещен'),
+        404: OpenApiResponse(description='Файл не найден')
+    }
+)
 class FileRenameView(views.APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
@@ -97,7 +152,29 @@ class FileRenameView(views.APIView):
         file_obj.save(update_fields=['original_name'])
         return Response({'message': 'Имя файла обновлено', 'file': FileSerializer(file_obj).data})
 
-
+@extend_schema(
+    summary="Изменить комментарий к файлу",
+    description="Обновляет комментарий к существующему файлу",
+    parameters=[
+        OpenApiParameter(
+            name='id',
+            location='path',
+            description='ID файла',
+            required=True,
+            type=int
+        )
+    ],
+    request=FileCommentSerializer,  
+    responses={
+        200: OpenApiResponse(
+            response=FileSerializer,
+            description='Комментарий обновлён'
+        ),
+        400: OpenApiResponse(description='Ошибка валидации'),
+        403: OpenApiResponse(description='Доступ запрещен'),
+        404: OpenApiResponse(description='Файл не найден')
+    }
+)
 class FileCommentView(views.APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
@@ -110,7 +187,10 @@ class FileCommentView(views.APIView):
 
         file_obj.comment = serializer.validated_data['comment']
         file_obj.save(update_fields=['comment'])
-        return Response({'message': 'Комментарий обновлён', 'file': FileSerializer(file_obj).data})
+        return Response({
+            'message': 'Комментарий обновлён', 
+            'file': FileSerializer(file_obj).data
+        })
 
 
 class FileShareView(views.APIView):

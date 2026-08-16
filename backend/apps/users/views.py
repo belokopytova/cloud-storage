@@ -4,8 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, views, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema
-
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 from .models import User
 from .serializers import (
     UserLoginSerializer, 
@@ -40,7 +39,50 @@ class RegisterView(generics.CreateAPIView):
 
 @extend_schema(
     summary="Вход в систему",
-    description="Аутентификация по username и password"
+    description="Аутентификация по username и password",
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'username': {
+                    'type': 'string',
+                    'description': 'Имя пользователя',
+                    'example': 'admin'
+                },
+                'password': {
+                    'type': 'string',
+                    'description': 'Пароль',
+                    'example': 'admin123',
+                    'writeOnly': True
+                }
+            },
+            'required': ['username', 'password']
+        }
+    },
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'message': {'type': 'string'},
+                    'user': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'username': {'type': 'string'},
+                            'email': {'type': 'string'},
+                            'full_name': {'type': 'string'},
+                            'is_admin': {'type': 'boolean'},
+                            'storage_path': {'type': 'string'},
+                            'created_at': {'type': 'string'}
+                        }
+                    }
+                }
+            },
+            description='Успешный вход'
+        ),
+        400: OpenApiResponse(description='Неверные данные')
+    }
 )
 class LoginView(views.APIView):
     permission_classes = [AllowAny]
