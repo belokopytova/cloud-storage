@@ -1,0 +1,221 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #1a1a1a;
+  color: #f5f5f5;
+  min-height: 100vh;
+}
+
+:root {
+  --red: #cc0000;
+  --red-dark: #990000;
+  --red-light: #ff1a1a;
+  --black: #0d0d0d;
+  --gray: #2a2a2a;
+  --gray-light: #3a3a3a;
+  --text: #f5f5f5;
+  --text-muted: #b0b0b0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.navbar {
+  background: var(--black);
+  border-bottom: 2px solid var(--red);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(204, 0, 0, 0.3);
+}
+
+.navbar-brand {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--red);
+  text-decoration: none;
+  letter-spacing: 1px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.navbar-links a,
+.navbar-links button {
+  color: var(--text);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all 0.3s;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.navbar-links a:hover,
+.navbar-links button:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Кнопки */
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: var(--red);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--red-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 0, 0.4);
+}
+
+.btn-secondary {
+  background: var(--gray);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-light);
+}
+
+.btn-danger {
+  background: var(--red-dark);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--red);
+}
+
+/* Карточки */
+.card {
+  background: var(--black);
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.card-title {
+  color: var(--white);
+  font-size: 20px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--gray);
+  padding-bottom: 12px;
+}
+
+/* Формы */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--gray);
+  border: 1px solid var(--gray-light);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--red);
+}
+
+.form-group .error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Таблицы */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.table th {
+  background: var(--gray);
+  color: var(--text-muted);
+  padding: 12px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--red);
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--gray);
+  color: var(--text);
+}
+
+.table tr:hover td {
+  background: rgba(204, 0, 0, 0.05);
+}
+
+/* Утилиты */
+.text-red {
+  color: var(--red);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.mt-20 {
+  margin-top: 20px;
+}
+.mb-20 {
+  margin-bottom: 20px;
+}
+.flex {
+  display: flex;
+}
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.gap-10 {
+  gap: 10px;
+}
