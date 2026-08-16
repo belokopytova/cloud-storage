@@ -15,6 +15,7 @@ dist-ssr
 storage/
 media/
 
+.env
 .vscode/*
 !.vscode/extensions.json
 .idea
