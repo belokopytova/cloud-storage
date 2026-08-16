@@ -10,8 +10,6 @@ SECRET_KEY = 'django-insecure-af'
 
 DEBUG = True
 
-#ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_ALL_ORIGINS = True  
@@ -31,16 +29,17 @@ CORS_ALLOW_HEADERS = [
     'X-CSRFToken',
 ]
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'http://194.67.124.178:8443',   # HTTP фронтенд
-#     'https://194.67.124.178:8443',  # HTTPS фронтенд
-#     'http://194.67.124.178:8080',   # Редирект порт
-#     'http://localhost:3000',        # Локальная разработка
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    'http://194.67.124.178:8443',   
+    'https://194.67.124.178:8443',  
+    'http://194.67.124.178:8080',   
+    'http://localhost:3000',
+    'http://localhost:5173/',        
+]
 
 CSRF_COOKIE_SECURE = False      # False для HTTP
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False    # Разрешаем JS доступ для фронтенда
+CSRF_COOKIE_HTTPONLY = False    
 CSRF_USE_SESSIONS = False
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  
@@ -62,7 +61,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'corsheaders',
-    'drf_yasg', 
 
     'apps.users',
     'apps.storage',
@@ -163,6 +161,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+FILE_STORAGE_ROOT = os.path.join(BASE_DIR, 'storage')
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  
 
