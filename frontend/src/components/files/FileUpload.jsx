@@ -1,4 +1,3 @@
-// components/files/FileUpload.jsx
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
 
@@ -13,7 +12,6 @@ const FileUpload = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Проверка размера файла (например, максимум 100MB)
       if (file.size > 100 * 1024 * 1024) {
         setError('Файл слишком большой. Максимальный размер: 100MB');
         setSelectedFile(null);
@@ -57,10 +55,8 @@ const FileUpload = () => {
         setSelectedFile(null);
         setComment('');
         setUploadProgress(0);
-        // Сброс input
         document.getElementById('file-input').value = '';
-        // Показать уведомление об успехе
-        alert('✅ Файл успешно загружен!');
+        alert('Файл успешно загружен!');
       } else {
         setError('Ошибка при загрузке файла');
       }
@@ -106,10 +102,10 @@ const FileUpload = () => {
 
   return (
     <div className="card">
-      <h3 className="card-title">📤 Загрузить файл</h3>
+      <h3 className="card-title">Загрузить файл</h3>
       
       <form onSubmit={handleSubmit}>
-        {/* Drag & Drop зона */}
+        {/* Drag & Drop */}
         <div
           className="drop-zone"
           onDragOver={handleDragOver}
@@ -137,7 +133,8 @@ const FileUpload = () => {
           
           {selectedFile ? (
             <div>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📄</div>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+              </div>
               <div style={{ fontWeight: 'bold', color: 'var(--red)' }}>
                 {selectedFile.name}
               </div>
@@ -159,7 +156,7 @@ const FileUpload = () => {
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: '48px', marginBottom: '8px' }}>📁</div>
+              <div style={{ fontSize: '48px', marginBottom: '8px' }}></div>
               <div style={{ color: 'var(--text-muted)' }}>
                 Перетащите файл сюда или нажмите для выбора
               </div>

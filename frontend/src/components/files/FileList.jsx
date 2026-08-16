@@ -1,4 +1,3 @@
-// components/files/FileList.jsx
 import React, { useContext, useState } from 'react';
 import { AppContext } from '../../App';
 import FileActions from './FileActions';
@@ -8,8 +7,6 @@ const FileList = () => {
   const [filter, setFilter] = useState('');
   const [sortBy, setSortBy] = useState('uploaded_at');
   const [sortOrder, setSortOrder] = useState('desc');
-
-  // Применяем фильтр и сортировку
   const filteredFiles = files?.filter(file => 
     file.name.toLowerCase().includes(filter.toLowerCase()) ||
     (file.comment && file.comment.toLowerCase().includes(filter.toLowerCase()))
@@ -31,7 +28,7 @@ const FileList = () => {
     return (
       <div className="card">
         <div className="text-muted" style={{ textAlign: 'center', padding: '40px 0' }}>
-          ⏳ Загрузка файлов...
+          Загрузка файлов...
         </div>
       </div>
     );
@@ -40,13 +37,13 @@ const FileList = () => {
   return (
     <div className="card">
       <div className="flex-between">
-        <h3 className="card-title">📂 Мои файлы ({sortedFiles?.length || 0})</h3>
+        <h3 className="card-title">Мои файлы ({sortedFiles?.length || 0})</h3>
         
         {/* Поиск и фильтрация */}
         <div className="flex gap-10">
           <input
             type="text"
-            placeholder="🔍 Поиск..."
+            placeholder="Поиск..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             style={{
@@ -88,7 +85,7 @@ const FileList = () => {
 
       {sortedFiles?.length === 0 ? (
         <div className="text-muted" style={{ textAlign: 'center', padding: '40px 0' }}>
-          {filter ? '🔍 Ничего не найдено' : '📭 Файлов пока нет. Загрузите первый файл!'}
+          {filter ? 'Ничего не найдено' : 'Файлов пока нет. Загрузите первый файл!'}
         </div>
       ) : (
         <div>

@@ -55,12 +55,7 @@ const Register = () => {
     if (!validate()) return;
 
     try {
-      console.log(' Отправка регистрации:', form);
       const result = await dispatch(register(form)).unwrap();
-      console.log('Регистрация успешна:', result);
-      
-      // После успешной регистрации перенаправляем на страницу входа
-      // (потому что пользователь еще не залогинен)
       navigate('/login');
     } catch (error) {
       console.error('Ошибка регистрации:', error);
