@@ -22,15 +22,13 @@ export const register = createAsyncThunk(
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (data, { rejectWithValue }) => {
+  async (credentials, { rejectWithValue }) => {
     try {
-      const response = await authAPI.login(data);
-      if (response.data.access) {
-        localStorage.setItem('accessToken', response.data.access);
-      }
-      return response.data;
+      const response = await authAPI.login(credentials);
+
+      return response.data; 
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Login failed');
+      return rejectWithValue(error.response?.data);
     }
   }
 );
@@ -40,8 +38,8 @@ export const logout = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authAPI.logout();
-      localStorage.removeItem('accessToken');
     } catch (error) {
+      console.error('Logout error:', error);
       return rejectWithValue(error.response?.data);
     }
   }
