@@ -65,8 +65,11 @@ cloud-storage/
 - **PostgreSQL 12+** для базы данных
 
 
+
 ## Установка и запуск Backend (Django + PostgreSQL)
 
+Создайте файл `.env` в папке `backend/`
+Скопировать переменные из файла примера `.env.example` в папке  `backend/`
 
 ### 1. Создание базы данных
 ```bash
@@ -102,25 +105,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Конфигурация Django
-
-Отредактируйте файл `backend/config/settings.py`:
-
-```python
-# Найдите раздел DATABASES и обновите его:
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cloud_storage',
-        'USER': 'cloud_user',           
-        'PASSWORD': 'your_password',      
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-```
-
-### 4. Миграция базы данных
+### 3. Миграция базы данных
 
 ```bash
 # Примените миграции
@@ -130,7 +115,7 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 5. Запуск backend сервера
+### 4. Запуск backend сервера
 
 ```bash
 # Убедитесь, что вы в папке backend и виртуальное окружение активировано
@@ -140,6 +125,9 @@ python manage.py runserver
 Сервер запустится на `http://localhost:8000/`
 
 ## Установка и запуск Frontend (React + Vite)
+
+Создайте файл `.env` в папке `frontend/`
+Скопировать переменные из файла примера `.env.example` в папке  `frontend/`
 
 ### 1. Установка зависимостей
 
