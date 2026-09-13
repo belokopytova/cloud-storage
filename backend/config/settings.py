@@ -36,7 +36,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://161.104.16.82.178:8443',  
     'http://161.104.16.82:8080',   
     'http://localhost:3000',
-    'http://localhost:5173/',        
+    'http://localhost:5173',        
 ]
 
 CSRF_COOKIE_SECURE = False      # False для HTTP
@@ -172,3 +172,88 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ============= LOGGING =============
+
+LOG_DIR = BASE_DIR / os.getenv('LOG_DIR', 'logs')
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE_PATH = LOG_DIR / os.getenv('LOG_FILE_NAME', 'app.log')
+
+LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', 10 * 1024 * 1024))  # 10 MB
+LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', 5))
+
+ROOT_LOG_LEVEL = os.getenv('ROOT_LOG_LEVEL', 'INFO')
+DJANGO_LOG_LEVEL = os.getenv('DJANGO_LOG_LEVEL', 'INFO')
+ACCOUNTS_LOG_LEVEL = os.getenv('ACCOUNTS_LOG_LEVEL', 'INFO')
+STORAGE_LOG_LEVEL = os.getenv('STORAGE_LOG_LEVEL', 'INFO')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} {module}.{funcName}:{lineno} - {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILE_PATH,
+            'maxBytes': LOG_MAX_BYTES,
+            'backupCount': LOG_BACKUP_COUNT,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+    },
+
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': ROOT_LOG_LEVEL,
+    },
+
+    'loggers': {
+  
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security.csrf': {
+            'handlers': ['console', 'file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+
+     
+        'apps.users': {
+            'handlers': ['console', 'file'],
+            'level': ACCOUNTS_LOG_LEVEL,
+            'propagate': False,
+        },
+
+       
+        'apps.storage': {
+            'handlers': ['console', 'file'],
+            'level': STORAGE_LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+}
