@@ -71,7 +71,7 @@ function App() {
           } 
         />
         <Route 
-          path="/admin" 
+          path="/admin-panel" 
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <AdminPanel />

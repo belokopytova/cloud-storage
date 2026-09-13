@@ -25,7 +25,7 @@ const Navbar = () => {
               {user?.username}
             </span>
             {user?.is_admin && (
-              <Link to="/admin">Админ</Link>
+              <Link to="/admin-panel">Админ</Link>
             )}
             <Link to="/files">Мои файлы</Link>
             <button onClick={handleLogout}>Выйти</button>
