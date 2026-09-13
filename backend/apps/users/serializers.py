@@ -60,7 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'full_name', 'is_admin',
             'storage_path', 'created_at', 'last_login',
-            'files_count',   # ← добавили
+            'files_count',   
         ]
 
     def get_files_count(self, obj):
