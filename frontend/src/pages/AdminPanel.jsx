@@ -1,31 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { fetchUsers, updateUser, deleteUser } from '../store/slices/userSlice';
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const { users = [], isLoading } = useSelector((state) => state.users);
+  const { users = [], isLoading, error } = useSelector((state) => state.users);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
 
-  // Фильтрация пользователей
-  const filteredUsers = users?.filter(u => 
-    u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (u.full_name && u.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Загрузка списка пользователей
+  useEffect(() => {
+    if (!user) return;
+    if (!user.is_admin) {
+      navigate('/dashboard');
+      return;
+    }
+    dispatch(fetchUsers());
+  }, [dispatch, user, navigate]);
 
-  const formatDate = (date) => {
-    return date ? new Date(date).toLocaleString('ru-RU') : '—';
+  const handleToggleAdmin = (id, isAdmin) => {
+    if (!window.confirm('Изменить роль пользователя?')) return;
+    dispatch(updateUser({ id, data: { is_admin: !isAdmin } }));
   };
 
-  // Статистика
+  const handleDeleteUser = (id) => {
+    if (!window.confirm('Удалить пользователя? Это необратимо.')) return;
+    dispatch(deleteUser(id));
+  };
+
+  const filteredUsers = users.filter((u) =>
+    u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.full_name && u.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleString('ru-RU') : '—';
+
   const stats = {
-    total: users?.length || 0,
-    admins: users?.filter(u => u.is_admin).length || 0,
-    users: users?.filter(u => !u.is_admin).length || 0,
+    total: users.length,
+    admins: users.filter((u) => u.is_admin).length,
+    users: users.filter((u) => !u.is_admin).length,
   };
 
   return (
@@ -34,16 +54,11 @@ const AdminPanel = () => {
         <div className="flex-between mb-20" style={{ flexWrap: 'wrap', gap: '12px' }}>
           <h1 style={{ color: 'var(--red)' }}>Админ-панель</h1>
           <div className="flex gap-10">
-            <Link to="/dashboard" className="btn btn-secondary">
-              Дашборд
-            </Link>
-            <Link to="/files" className="btn btn-primary">
-              Файлы
-            </Link>
+            <Link to="/dashboard" className="btn btn-secondary">Дашборд</Link>
+            <Link to="/files" className="btn btn-primary">Файлы</Link>
           </div>
         </div>
 
-        {/* Статистика */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
@@ -60,11 +75,9 @@ const AdminPanel = () => {
           </div>
           <div className="card" style={{ textAlign: 'center', padding: '16px' }}>
             <div style={{ fontSize: '24px', color: 'var(--red)' }}>{stats.users}</div>
-            <div className="text-muted" style={{ fontSize: '14px' }}>Пользователей</div>
+            <div className="text-muted" style={{ fontSize: '14px' }}>Обычных пользователей</div>
           </div>
         </div>
-
-        {/* Поиск */}
         <div className="card">
           <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
             <h3 className="card-title" style={{ marginBottom: '0' }}>Список пользователей</h3>
@@ -84,11 +97,15 @@ const AdminPanel = () => {
             />
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-muted" style={{ textAlign: 'center', padding: '40px 0' }}>
               Загрузка...
             </div>
-          ) : filteredUsers?.length === 0 ? (
+          ) : error ? (
+            <div style={{ color: 'var(--red)', textAlign: 'center', padding: '40px 0' }}>
+              Ошибка загрузки: {JSON.stringify(error)}
+            </div>
+          ) : filteredUsers.length === 0 ? (
             <div className="text-muted" style={{ textAlign: 'center', padding: '40px 0' }}>
               {searchTerm ? 'Пользователи не найдены' : 'Пользователей пока нет'}
             </div>
@@ -106,14 +123,14 @@ const AdminPanel = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers?.map((u) => (
+                  {filteredUsers.map((u) => (
                     <tr key={u.id}>
                       <td>
                         <strong>{u.username}</strong>
                         {u.id === user?.id && (
-                          <span style={{ 
-                            color: 'var(--red)', 
-                            fontSize: '12px', 
+                          <span style={{
+                            color: 'var(--red)',
+                            fontSize: '12px',
                             marginLeft: '8px',
                             fontWeight: 'bold'
                           }}>
@@ -128,7 +145,7 @@ const AdminPanel = () => {
                           className={`btn ${u.is_admin ? 'btn-primary' : 'btn-secondary'}`}
                           style={{ padding: '4px 12px', fontSize: '12px' }}
                           onClick={() => handleToggleAdmin(u.id, u.is_admin)}
-                          disabled={u.id === user?.id} 
+                          disabled={u.id === user?.id}
                           title={u.id === user?.id ? 'Нельзя изменить свои права' : ''}
                         >
                           {u.is_admin ? 'Админ' : 'Пользователь'}
@@ -162,10 +179,16 @@ const AdminPanel = () => {
                             className="btn btn-danger"
                             style={{ padding: '4px 10px', fontSize: '12px' }}
                             onClick={() => handleDeleteUser(u.id)}
-                            disabled={u.id === user?.id}
-                            title={u.id === user?.id ? 'Нельзя удалить себя' : ''}
+                            disabled={u.id === user?.id || u.is_admin}
+                            title={
+                              u.id === user?.id
+                                ? 'Нельзя удалить себя'
+                                : u.is_admin
+                                ? 'Нельзя удалить администратора'
+                                : ''
+                            }
                           >
-                            
+                            Удалить
                           </button>
                         </div>
                       </td>
@@ -177,38 +200,32 @@ const AdminPanel = () => {
           )}
         </div>
 
-        {/* Модальное окно с деталями пользователя */}
         {showUserDetails && selectedUser && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }} onClick={() => setShowUserDetails(false)}>
-            <div className="card" style={{ 
-              maxWidth: '500px', 
-              width: '100%',
-              maxHeight: '80vh',
-              overflow: 'auto'
-            }} onClick={(e) => e.stopPropagation()}>
+          <div
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.8)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 1000, padding: '20px'
+            }}
+            onClick={() => setShowUserDetails(false)}
+          >
+            <div
+              className="card"
+              style={{ maxWidth: '500px', width: '100%', maxHeight: '80vh', overflow: 'auto' }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex-between">
-                <h3 className="card-title" style={{ marginBottom: '0' }}>👤 Детали пользователя</h3>
-                <button 
-                  className="btn btn-secondary" 
+                <h3 className="card-title" style={{ marginBottom: '0' }}>Детали пользователя</h3>
+                <button
+                  className="btn btn-secondary"
                   onClick={() => setShowUserDetails(false)}
                   style={{ padding: '4px 12px' }}
                 >
                   ✕
                 </button>
               </div>
-              
+
               <div style={{ marginTop: '16px' }}>
                 <div style={{ marginBottom: '12px' }}>
                   <div className="text-muted" style={{ fontSize: '12px' }}>Логин</div>
@@ -225,7 +242,7 @@ const AdminPanel = () => {
                 <div style={{ marginBottom: '12px' }}>
                   <div className="text-muted" style={{ fontSize: '12px' }}>Роль</div>
                   <div style={{ color: selectedUser.is_admin ? 'var(--red)' : 'var(--text-muted)' }}>
-                    {selectedUser.is_admin ? 'Администратор' : ' Пользователь'}
+                    {selectedUser.is_admin ? 'Администратор' : 'Пользователь'}
                   </div>
                 </div>
                 <div style={{ marginBottom: '12px' }}>
@@ -234,7 +251,7 @@ const AdminPanel = () => {
                 </div>
                 <div style={{ marginBottom: '12px' }}>
                   <div className="text-muted" style={{ fontSize: '12px' }}>Дата регистрации</div>
-                  <div>{formatDate(selectedUser.date_joined)}</div>
+                  <div>{formatDate(selectedUser.created_at)}</div>
                 </div>
                 <div style={{ marginBottom: '12px' }}>
                   <div className="text-muted" style={{ fontSize: '12px' }}>Последний вход</div>

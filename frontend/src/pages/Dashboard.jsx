@@ -14,7 +14,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (files && files.length > 0) {
-      // Общая статистика
       const totalSize = files.reduce((sum, f) => sum + (f.size || 0), 0);
       const lastUpload = files.length > 0 ? files[0] : null;
       
@@ -54,7 +53,6 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Статистические карточки */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -78,7 +76,7 @@ const Dashboard = () => {
           </div>
 
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '4px' }}>👤</div>
+            <div style={{ fontSize: '32px', marginBottom: '4px' }}></div>
             <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--red)' }}>
               {user?.username}
             </div>
@@ -88,7 +86,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Информация о последних файлах */}
         <div className="card">
           <h3 className="card-title">Последние файлы</h3>
           
@@ -105,9 +102,9 @@ const Dashboard = () => {
                   gap: '8px'
                 }}>
                   <div>
-                    <div style={{ fontWeight: 'bold' }}> {file.name}</div>
+                    <div style={{ fontWeight: 'bold' }}> {file.original_name}</div>
                     <div className="text-muted" style={{ fontSize: '13px' }}>
-                      {formatSize(file.size)} • {formatDate(file.uploaded_at)}
+                      {formatSize(file.size)} • {formatDate(file.upload_date)}
                     </div>
                   </div>
                   <Link 
@@ -130,7 +127,7 @@ const Dashboard = () => {
         {/* Информация о пользователе */}
         {user && (
           <div className="card">
-            <h3 className="card-title">👤 Информация профиля</h3>
+            <h3 className="card-title">Информация профиля</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <div className="text-muted" style={{ fontSize: '12px' }}>Логин</div>
