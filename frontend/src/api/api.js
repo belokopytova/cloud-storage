@@ -1,23 +1,34 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, 
+  withCredentials: true,
 });
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
 
 api.interceptors.request.use(
   (config) => {
-   
+    // Добавление CSRF-токена 
+    const unsafeMethods = ['post', 'put', 'patch', 'delete'];
+    if (unsafeMethods.includes((config.method || '').toLowerCase())) {
+      const csrfToken = getCookie('csrftoken');
+      if (csrfToken) {
+        config.headers['X-CSRFToken'] = csrfToken;
+      }
+    }
     return config;
   },
   (error) => Promise.reject(error)
 );
-
 
 api.interceptors.response.use(
   (response) => response,
@@ -50,7 +61,7 @@ export const filesAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  rename: (id, newName) => api.post(`/files/${id}/rename/`, { name: newName }),
+  rename: (id, newName) => api.post(`/files/${id}/rename/`, { new_name: newName }),
   addComment: (id, comment) => api.post(`/files/${id}/comment/`, { comment }),
   share: (id) => api.post(`/files/${id}/share/`),
   download: (id) => api.get(`/files/${id}/download/`, { responseType: 'blob' }),
