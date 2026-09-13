@@ -39,16 +39,16 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',        
 ]
 
-CSRF_COOKIE_SECURE = False      # False для HTTP
+CSRF_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE','False') == 'True'
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False    
+CSRF_COOKIE_HTTPONLY = os.getenv('CSRF_COOKIE_HTTPONLY', 'False') == 'True'    
 CSRF_USE_SESSIONS = False
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  
 SESSION_COOKIE_NAME = 'mycloud_sessionid'  
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  
 SESSION_COOKIE_HTTPONLY = True  
-SESSION_COOKIE_SECURE = False  
+SESSION_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE',   'False') == 'True'  
 SESSION_COOKIE_SAMESITE = 'Lax'  
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
 
