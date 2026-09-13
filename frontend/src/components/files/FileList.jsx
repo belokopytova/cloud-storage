@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';                   
 import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';                    
 import { fetchFiles } from '../../store/slices/fileSlice';
 import FileActions from './FileActions';
 
 const FileList = () => {
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();                          
+  const userId = searchParams.get('user');                         
+
   const { files, isLoading } = useSelector((state) => state.files);
   const [filter, setFilter] = useState('');
   const [sortBy, setSortBy] = useState('upload_date');
   const [sortOrder, setSortOrder] = useState('desc');
+
+  useEffect(() => {
+    dispatch(fetchFiles(userId));
+  }, [dispatch, userId]);
 
   const filteredFiles = files?.filter(
     (file) =>
@@ -41,9 +49,11 @@ const FileList = () => {
   return (
     <div className="card">
       <div className="flex-between">
-        <h3 className="card-title">Мои файлы ({sortedFiles?.length || 0})</h3>
+        <h3 className="card-title">
+          {userId ? `Файлы пользователя ${userId}` : 'Мои файлы'} ({sortedFiles?.length || 0})
+        </h3>
 
-        {/* Поиск и фильтрация */}
+
         <div className="flex gap-10">
           <input
             type="text"
@@ -98,7 +108,7 @@ const FileList = () => {
               key={file.id}
               file={file}
               onActionComplete={() => {
-                dispatch(fetchFiles());
+                dispatch(fetchFiles(userId));                       
               }}
             />
           ))}

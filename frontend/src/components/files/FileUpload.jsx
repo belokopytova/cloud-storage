@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import { uploadFile } from '../../store/slices/fileSlice';
 
 const FileUpload = () => {
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const userId = searchParams.get('user');   // '4' или null
+
   const { isLoading } = useSelector((state) => state.files);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -36,25 +40,16 @@ const FileUpload = () => {
     setIsUploading(true);
     setUploadProgress(0);
 
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => (prev >= 95 ? 95 : prev + 5));
+    }, 100);
+
     try {
-      // Имитация прогресса загрузки
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            return 95;
-          }
-          return prev + 5;
-        });
-      }, 100);
-
-      const result = await dispatch(uploadFile({ file: selectedFile, comment }));
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
+      const result = await dispatch(
+        uploadFile({ file: selectedFile, comment, userId })
+      );
 
       if (uploadFile.fulfilled.match(result)) {
-        // Сброс формы
         setSelectedFile(null);
         setComment('');
         setUploadProgress(0);
@@ -67,6 +62,7 @@ const FileUpload = () => {
       setError('Ошибка при загрузке файла');
       console.error('Upload error:', err);
     } finally {
+      clearInterval(progressInterval);
       setIsUploading(false);
       setTimeout(() => setUploadProgress(0), 2000);
     }
@@ -106,8 +102,10 @@ const FileUpload = () => {
 
   return (
     <div className="card">
-      <h3 className="card-title">Загрузить файл</h3>
-      
+      <h3 className="card-title">
+        {userId ? `Загрузить файл для пользователя ${userId}` : 'Загрузить файл'}
+      </h3>
+
       <form onSubmit={handleSubmit}>
         {/* Drag & Drop */}
         <div
@@ -134,11 +132,9 @@ const FileUpload = () => {
             style={{ display: 'none' }}
             disabled={isUploading || isLoading}
           />
-          
+
           {selectedFile ? (
             <div>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>
-              </div>
               <div style={{ fontWeight: 'bold', color: 'var(--red)' }}>
                 {selectedFile.name}
               </div>
@@ -160,7 +156,6 @@ const FileUpload = () => {
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: '48px', marginBottom: '8px' }}></div>
               <div style={{ color: 'var(--text-muted)' }}>
                 Перетащите файл сюда или нажмите для выбора
               </div>
@@ -190,7 +185,7 @@ const FileUpload = () => {
         {/* Прогресс загрузки */}
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ 
+            <div style={{
               background: 'var(--gray)',
               borderRadius: '4px',
               height: '20px',

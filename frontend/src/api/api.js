@@ -50,14 +50,17 @@ export const authAPI = {
 
 // ============= FILES =============
 export const filesAPI = {
-  list: () => api.get('/files/'),
+  list: (userId) => api.get('/files/', {
+    params: userId ? { user: userId } : {},
+  }),
   get: (id) => api.get(`/files/${id}/`),
   delete: (id) => api.delete(`/files/${id}/`),
-  upload: (file, comment) => {
+  upload: (file, comment, userId) => {
     const formData = new FormData();
     formData.append('file', file);
     if (comment) formData.append('comment', comment);
     return api.post('/files/upload/', formData, {
+      params: userId ? { user: userId } : {},
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },

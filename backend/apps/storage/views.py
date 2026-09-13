@@ -14,6 +14,8 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParamet
 from apps.users.permissions import IsOwnerOrAdmin, IsOwnerStorageOrAdmin
 from .models import File
 from .serializers import FileCommentSerializer, FileRenameSerializer, FileSerializer, FileUploadSerializer
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 import logging
 
@@ -25,7 +27,10 @@ class FileListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsOwnerStorageOrAdmin]
 
     def get_queryset(self):
-        user_id = self.request.query_params.get('user_id')
+        user_id = (
+            self.request.query_params.get('user')
+            or self.request.query_params.get('user_id')
+        )
         if self.request.user.is_admin and user_id:
             return File.objects.filter(user_id=user_id, is_deleted=False).order_by('-upload_date')
         return File.objects.filter(user=self.request.user, is_deleted=False).order_by('-upload_date')
@@ -58,6 +63,7 @@ class FileListView(generics.ListAPIView):
         401: OpenApiResponse(description='Не авторизован')
     }
 )
+
 class FileUploadView(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
     permission_classes = [IsAuthenticated]
@@ -69,37 +75,59 @@ class FileUploadView(generics.CreateAPIView):
         uploaded_file = serializer.validated_data['file']
         comment = serializer.validated_data.get('comment', '')
 
+  
+        target_user = request.user
+
+        target_user_id = (
+            request.query_params.get('user')
+            or request.query_params.get('user_id')
+            or request.data.get('user_id')
+        )
+
+        if target_user_id:
+            if not request.user.is_admin:
+                return Response(
+                    {'error': 'Только администратор может загружать файлы другим пользователям'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            try:
+                target_user = User.objects.get(id=target_user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {'error': f'Пользователь с id={target_user_id} не найден'},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+  
         storage_root = Path(settings.FILE_STORAGE_ROOT)
-        user_folder = storage_root / request.user.storage_path
+        user_folder = storage_root / target_user.storage_path
         user_folder.mkdir(parents=True, exist_ok=True)
 
-       
         ext = Path(uploaded_file.name).suffix
         stored_name = f'{uuid.uuid4().hex}{ext}'
-        
-        relative_path = f"{request.user.storage_path}/{stored_name}"
+
+        relative_path = f"{target_user.storage_path}/{stored_name}"
         full_path = storage_root / relative_path
 
-    
         with open(full_path, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
-      
         file_record = File.objects.create(
-            user=request.user,
+            user=target_user,                           
             original_name=uploaded_file.name,
             stored_name=stored_name,
-            file_path=relative_path.replace('\\', '/'), 
+            file_path=relative_path.replace('\\', '/'),
             comment=comment,
             size=uploaded_file.size,
         )
 
         logger.info(
-            'Файл загружен: %s (id=%s, user=%s, size=%s байт)',
-            file_record.original_name, file_record.id, request.user.username, file_record.size
+            'Файл загружен: %s (id=%s, owner=%s, by=%s, size=%s байт)',
+            file_record.original_name, file_record.id,
+            target_user.username, request.user.username, file_record.size,
         )
-        
+
         return Response(FileSerializer(file_record).data, status=status.HTTP_201_CREATED)
 
 

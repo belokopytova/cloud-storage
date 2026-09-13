@@ -11,24 +11,24 @@ const initialState = {
 
 export const fetchFiles = createAsyncThunk(
   'files/fetch',
-  async (_, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
-      const response = await filesAPI.list();
+      const response = await filesAPI.list(userId);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
 
 export const uploadFile = createAsyncThunk(
   'files/upload',
-  async ({ file, comment }, { rejectWithValue }) => {
+  async ({ file, comment, userId }, { rejectWithValue }) => {
     try {
-      const response = await filesAPI.upload(file, comment);
+      const response = await filesAPI.upload(file, comment, userId);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
