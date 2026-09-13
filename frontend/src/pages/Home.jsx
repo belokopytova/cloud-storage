@@ -1,10 +1,9 @@
-// pages/Home.jsx
-import React, { useContext } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../App';
 
 const Home = () => {
-  const { isAuthenticated, user } = useContext(AppContext);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   return (
     <div className="container">
@@ -93,28 +92,6 @@ const Home = () => {
         gap: '24px',
         marginTop: '40px'
       }}>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}></div>
-          <h3 style={{ color: 'var(--red)', marginBottom: '8px' }}>Облачное хранилище</h3>
-          
-        </div>
-
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}></div>
-          <h3 style={{ color: 'var(--red)', marginBottom: '8px' }}>Безопасность</h3>
-        </div>
-
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}></div>
-          <h3 style={{ color: 'var(--red)', marginBottom: '8px' }}>Простой обмен</h3>
-          
-        </div>
-
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>👥</div>
-          <h3 style={{ color: 'var(--red)', marginBottom: '8px' }}>Управление пользователями</h3>
-          
-        </div>
       </div>
 
       {/* Информация для авторизованных */}
