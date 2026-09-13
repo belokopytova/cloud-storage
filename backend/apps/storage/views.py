@@ -15,6 +15,10 @@ from apps.users.permissions import IsOwnerOrAdmin, IsOwnerStorageOrAdmin
 from .models import File
 from .serializers import FileCommentSerializer, FileRenameSerializer, FileSerializer, FileUploadSerializer
 
+import logging
+
+logger = logging.getLogger('apps.storage')
+
 
 class FileListView(generics.ListAPIView):
     serializer_class = FileSerializer
@@ -90,6 +94,11 @@ class FileUploadView(generics.CreateAPIView):
             comment=comment,
             size=uploaded_file.size,
         )
+
+        logger.info(
+            'Файл загружен: %s (id=%s, user=%s, size=%s байт)',
+            file_record.original_name, file_record.id, request.user.username, file_record.size
+        )
         
         return Response(FileSerializer(file_record).data, status=status.HTTP_201_CREATED)
 
@@ -112,6 +121,11 @@ class FileDetailView(generics.RetrieveDestroyAPIView):
         instance.is_deleted = True
         instance.deleted_at = __import__('django.utils.timezone').utils.timezone.now()
         instance.save(update_fields=['is_deleted', 'deleted_at'])
+        logger.info(
+            'Файл удалён: %s (id=%s, user=%s)',
+            instance.original_name, instance.id, request.user.username
+        )
+
         return Response({'message': 'Файл удалён'}, status=status.HTTP_200_OK)
 
 @extend_schema(
@@ -150,7 +164,7 @@ class FileRenameView(views.APIView):
         new_name = serializer.validated_data['new_name']
         file_obj.original_name = new_name
         file_obj.save(update_fields=['original_name'])
-        return Response({'message': 'Имя файла обновлено', 'file': FileSerializer(file_obj).data})
+        return Response(FileSerializer(file_obj).data)
 
 @extend_schema(
     summary="Изменить комментарий к файлу",
@@ -187,10 +201,7 @@ class FileCommentView(views.APIView):
 
         file_obj.comment = serializer.validated_data['comment']
         file_obj.save(update_fields=['comment'])
-        return Response({
-            'message': 'Комментарий обновлён', 
-            'file': FileSerializer(file_obj).data
-        })
+        return Response(FileSerializer(file_obj).data)
 
 
 class FileShareView(views.APIView):
@@ -215,6 +226,7 @@ class FileDownloadView(views.APIView):
 
         file_path = Path(settings.FILE_STORAGE_ROOT) / file_obj.file_path
         if not file_path.exists():
+            logger.error('Файл не найден на диске: id=%s, path=%s', file_obj.id, file_path)
             raise Http404('Файл не найден на диске')
 
         file_obj.update_last_download()

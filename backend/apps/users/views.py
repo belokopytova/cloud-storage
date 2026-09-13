@@ -1,6 +1,8 @@
+
 from django.contrib.auth import login, logout  
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
+from django.middleware.csrf import get_token
 from rest_framework import generics, status, views, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -12,6 +14,10 @@ from .serializers import (
     UserSerializer, 
     UserUpdateSerializer
 )
+
+import logging
+
+logger = logging.getLogger('apps.users')
 
 @extend_schema(
     summary="Регистрация нового пользователя",
@@ -28,7 +34,10 @@ class RegisterView(generics.CreateAPIView):
         
   
         login(request, user)
-        
+        get_token(request)
+
+        logger.info('Зарегистрирован новый пользователь: %s (id=%s)', user.username, user.id)
+
         return Response(
             {
                 'message': 'Пользователь успешно зарегистрирован',
@@ -88,11 +97,21 @@ class LoginView(views.APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+
         serializer = UserLoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            logger.warning('Неудачная попытка входа: username=%s', request.data.get('username'))
+            raise
+
         user = serializer.validated_data['user']
         
         login(request, user)
+        get_token(request)
+
+        logger.info('Успешный вход: %s (id=%s)', user.username, user.id)
         
         return Response({
             'message': 'Успешный вход',
@@ -107,7 +126,12 @@ class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        logout(request)  
+        
+        username = request.user.username
+        logout(request) 
+
+        logger.info('Выход из системы: %s', username) 
+
         return Response({'message': 'Выход выполнен'})
 
 @extend_schema(
@@ -118,6 +142,8 @@ class CurrentUserView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
+        get_token(request)
         return Response(UserSerializer(request.user).data)
 
 @extend_schema(
