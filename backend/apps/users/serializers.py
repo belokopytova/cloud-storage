@@ -53,10 +53,18 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    files_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'full_name', 'is_admin', 'storage_path', 'created_at']
-        read_only_fields = ['id', 'storage_path', 'created_at']
+        fields = [
+            'id', 'username', 'email', 'full_name', 'is_admin',
+            'storage_path', 'created_at', 'last_login',
+            'files_count',   # ← добавили
+        ]
+
+    def get_files_count(self, obj):
+        return obj.files.filter(is_deleted=False).count()
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
