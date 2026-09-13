@@ -46,7 +46,7 @@ const Home = () => {
             marginBottom: '12px',
             fontWeight: 'bold'
           }}>
-            FileHost
+            MyCloud
           </h1>
           <p style={{
             fontSize: '20px',

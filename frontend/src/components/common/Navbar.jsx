@@ -16,7 +16,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
-        FileHost
+        MyCloud
       </Link>
       <div className="navbar-links">
         {isAuthenticated ? (
