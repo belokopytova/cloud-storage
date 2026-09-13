@@ -1,11 +1,10 @@
-// pages/Dashboard.jsx
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../App';
-import { filesAPI } from '../api/api';
 
 const Dashboard = () => {
-  const { user, files } = useContext(AppContext);
+  const { user } = useSelector((state) => state.auth);
+  const { files } = useSelector((state) => state.files);
   const [stats, setStats] = useState({
     totalFiles: 0,
     totalSize: 0,

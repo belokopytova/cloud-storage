@@ -1,11 +1,11 @@
-// pages/AdminPanel.jsx
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../App';
-import { usersAPI } from '../api/api';
 
 const AdminPanel = () => {
-  const { user, users, loading, fetchUsers, handleDeleteUser, handleToggleAdmin } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const { users = [], isLoading } = useSelector((state) => state.users);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
