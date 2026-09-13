@@ -1,8 +1,11 @@
-import React, { useState, useContext } from 'react';
-import { AppContext } from '../../App';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { uploadFile } from '../../store/slices/fileSlice';
 
 const FileUpload = () => {
-  const { handleUpload, loading } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const { isLoading } = useSelector((state) => state.files);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [comment, setComment] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -45,12 +48,12 @@ const FileUpload = () => {
         });
       }, 100);
 
-      const result = await handleUpload(selectedFile, comment);
-      
+      const result = await dispatch(uploadFile({ file: selectedFile, comment }));
+
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (result.success) {
+      if (uploadFile.fulfilled.match(result)) {
         // Сброс формы
         setSelectedFile(null);
         setComment('');
@@ -62,6 +65,7 @@ const FileUpload = () => {
       }
     } catch (err) {
       setError('Ошибка при загрузке файла');
+      console.error('Upload error:', err);
     } finally {
       setIsUploading(false);
       setTimeout(() => setUploadProgress(0), 2000);
@@ -84,7 +88,7 @@ const FileUpload = () => {
     e.preventDefault();
     e.currentTarget.style.borderColor = 'var(--gray-light)';
     e.currentTarget.style.background = 'transparent';
-    
+
     const file = e.dataTransfer.files[0];
     if (file) {
       setSelectedFile(file);
@@ -128,7 +132,7 @@ const FileUpload = () => {
             type="file"
             onChange={handleFileChange}
             style={{ display: 'none' }}
-            disabled={isUploading || loading}
+            disabled={isUploading || isLoading}
           />
           
           {selectedFile ? (
@@ -175,7 +179,7 @@ const FileUpload = () => {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Введите комментарий..."
-            disabled={isUploading || loading}
+            disabled={isUploading || isLoading}
             maxLength="200"
           />
           <div className="text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>
@@ -222,7 +226,7 @@ const FileUpload = () => {
         <button
           type="submit"
           className="btn btn-primary"
-          disabled={!selectedFile || isUploading || loading}
+          disabled={!selectedFile || isUploading || isLoading}
           style={{ width: '100%' }}
         >
           {isUploading ? (

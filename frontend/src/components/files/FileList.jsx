@@ -1,30 +1,34 @@
-import React, { useContext, useState } from 'react';
-import { AppContext } from '../../App';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchFiles } from '../../store/slices/fileSlice';
 import FileActions from './FileActions';
 
 const FileList = () => {
-  const { files, loading, fetchFiles } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const { files, isLoading } = useSelector((state) => state.files);
   const [filter, setFilter] = useState('');
-  const [sortBy, setSortBy] = useState('uploaded_at');
+  const [sortBy, setSortBy] = useState('upload_date');
   const [sortOrder, setSortOrder] = useState('desc');
-  const filteredFiles = files?.filter(file => 
-    file.name.toLowerCase().includes(filter.toLowerCase()) ||
-    (file.comment && file.comment.toLowerCase().includes(filter.toLowerCase()))
+
+  const filteredFiles = files?.filter(
+    (file) =>
+      file.original_name?.toLowerCase().includes(filter.toLowerCase()) ||
+      (file.comment && file.comment?.toLowerCase().includes(filter.toLowerCase()))
   );
 
   const sortedFiles = filteredFiles?.sort((a, b) => {
     let comparison = 0;
-    if (sortBy === 'name') {
-      comparison = a.name.localeCompare(b.name);
+    if (sortBy === 'original_name') {
+      comparison = a.original_name.localeCompare(b.original_name);
     } else if (sortBy === 'size') {
       comparison = a.size - b.size;
-    } else if (sortBy === 'uploaded_at') {
-      comparison = new Date(a.uploaded_at) - new Date(b.uploaded_at);
+    } else if (sortBy === 'upload_date') {
+      comparison = new Date(a.upload_date) - new Date(b.upload_date);
     }
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="card">
         <div className="text-muted" style={{ textAlign: 'center', padding: '40px 0' }}>
@@ -38,7 +42,7 @@ const FileList = () => {
     <div className="card">
       <div className="flex-between">
         <h3 className="card-title">Мои файлы ({sortedFiles?.length || 0})</h3>
-        
+
         {/* Поиск и фильтрация */}
         <div className="flex gap-10">
           <input
@@ -52,10 +56,10 @@ const FileList = () => {
               border: '1px solid var(--gray-light)',
               borderRadius: '4px',
               padding: '6px 12px',
-              fontSize: '13px'
+              fontSize: '13px',
             }}
           />
-          
+
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -65,14 +69,14 @@ const FileList = () => {
               border: '1px solid var(--gray-light)',
               borderRadius: '4px',
               padding: '6px 12px',
-              fontSize: '13px'
+              fontSize: '13px',
             }}
           >
-            <option value="uploaded_at">По дате</option>
-            <option value="name">По имени</option>
+            <option value="upload_date">По дате</option>
+            <option value="original_name">По имени</option>
             <option value="size">По размеру</option>
           </select>
-          
+
           <button
             className="btn btn-secondary"
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -90,11 +94,11 @@ const FileList = () => {
       ) : (
         <div>
           {sortedFiles?.map((file) => (
-            <FileActions 
-              key={file.id} 
-              file={file} 
+            <FileActions
+              key={file.id}
+              file={file}
               onActionComplete={() => {
-                fetchFiles();
+                dispatch(fetchFiles());
               }}
             />
           ))}
